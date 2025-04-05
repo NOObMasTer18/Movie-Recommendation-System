@@ -1,17 +1,13 @@
 import pickle
 from http.client import responses
-
 import streamlit as st
 import requests
 
 def fetch_poster(movie_id):
-
-    response = requests.get('https://api.themoviedb.org/3/movie/{}?api_key=749627bb5d47066b0de73d8f24ef6212'.format(movie_id))
-
+    response = requests.get(
+        f'https://api.themoviedb.org/3/movie/{movie_id}?api_key=749627bb5d47066b0de73d8f24ef6212')
     data = response.json()
-
     return "http://image.tmdb.org/t/p/w500/" + data['poster_path']
-
 
 def recommend(movie):
     movie_index = movies_df[movies_df['title'] == movie].index[0]
@@ -23,24 +19,25 @@ def recommend(movie):
     for i in recommended_indices:
         movie_id = movies_df.iloc[i[0]].movie_id
         recommended_movies.append(movies_df.iloc[i[0]].title)
-        # fetch poster from API
         recommended_movies_posters.append(fetch_poster(movie_id))
-    return recommended_movies,recommended_movies_posters
+    return recommended_movies, recommended_movies_posters
 
-movies_df = pickle.load(open('movies.pkl','rb'))
+# Load data
+movies_df = pickle.load(open('movies.pkl', 'rb'))
 movies_list = movies_df['title'].values
 
-similarity = pickle.load(open('similarity.pkl','rb'))
+# Add placeholder to the dropdown list
+movies_with_placeholder = ['Select a movie...'] + list(movies_list)
 
+similarity = pickle.load(open('similarity.pkl', 'rb'))
 
 st.title('Movie Recommendation System')
 
-selected_movie_name = st.selectbox(
-"Choose a movie",
-movies_list)
+# Dropdown with placeholder
+selected_movie_name = st.selectbox("Choose a movie", movies_with_placeholder)
 
-if st.button("Recommend"):
-    names,posters = recommend(selected_movie_name)
+if st.button("Recommend") and selected_movie_name != "Select a movie...":
+    names, posters = recommend(selected_movie_name)
     col1, col2, col3, col4, col5 = st.columns(5)
 
     with col1:
@@ -62,6 +59,5 @@ if st.button("Recommend"):
     with col5:
         st.text(names[4])
         st.image(posters[4])
-
 
 
